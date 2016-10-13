@@ -37,8 +37,9 @@ km.fit(tfidf_matrix)
 
 clusters = km.labels_.tolist()
 
+# print the first 10 documents with the cluster they belong to
 for i in range(10):
-    print('cluster: {}, text: {}',format(train_set[i], clusters[i]))
+    print('cluster: {:d}, text: {}'.format(clusters[i], train_set[i]))
 
 import pandas as pd
 
