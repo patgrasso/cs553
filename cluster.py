@@ -5,7 +5,7 @@ import csv
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans, MiniBatchKMeans
 
-input = csv.reader(open("serious.csv"))
+input = csv.reader(open("serious.csv", encoding="latin1"))
 headers = next(input)
 
 # read in the text from the csv
