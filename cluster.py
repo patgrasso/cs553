@@ -41,26 +41,12 @@ clusters = km.labels_.tolist()
 for i in range(10):
     print('cluster: {:d}, text: {}'.format(clusters[i], train_set[i]))
 
-import pandas as pd
+from collections import defaultdict
+cluster_dict = defaultdict(list)
 
-print("Top terms per cluster:")
-print()
-#sort cluster centers by proximity to centroid
-order_centroids = km.cluster_centers_.argsort()[:, ::-1]
+for i in range(len(clusters)):
+    cluster_dict[clusters[i]].append(train_set[i])
 
-for i in range(num_clusters):
-    print("Cluster %d words:" % i, end='')
 
-    for ind in order_centroids[i, :6]: #replace 6 with n words per cluster
-        print(' %s' % vocab_frame.ix[terms[ind].split(' ')].values.tolist()[0][0].encode('utf-8', 'ignore'), end=',')
-    print() #add whitespace
-    print() #add whitespace
-
-    print("Cluster %d titles:" % i, end='')
-    for title in frame.ix[i]['title'].values.tolist():
-        print(' %s,' % title, end='')
-    print() #add whitespace
-    print() #add whitespace
-
-print()
-print()
+for key in cluster_dict:
+    print(len(cluster_dict[key]))
