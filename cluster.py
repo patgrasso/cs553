@@ -24,9 +24,9 @@ test_set = text[:test_size]
 validate_set = text[test_size:test_size + validate_size]
 train_set = text[test_size + validate_size:]
 
-test_serious_set = text[:test_size]
-validate_serious_set = text[test_size:test_size + validate_size]
-train_serious_set = text[test_size + validate_size:]
+test_serious_set = seriouses[:test_size]
+validate_serious_set = seriouses[test_size:test_size + validate_size]
+train_serious_set = seriouses[test_size + validate_size:]
 
 # get the TF IDF for all documents
 tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000,
