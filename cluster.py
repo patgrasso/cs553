@@ -9,8 +9,12 @@ input = csv.reader(open("serious.csv", encoding="latin1"))
 headers = next(input)
 
 # read in the text from the csv
-text = [line[8] for line in input]
+text = []
+seriouses = []
 
+for line in input:
+    text.append(line[8])
+    seriouses.append(line[-1])
 
 # Partition the data into the 3 sets
 test_size = int(len(text) * 0.1) # 10%
@@ -19,6 +23,10 @@ validate_size = int(len(text) * 0.1) # 10%
 test_set = text[:test_size]
 validate_set = text[test_size:test_size + validate_size]
 train_set = text[test_size + validate_size:]
+
+test_serious_set = text[:test_size]
+validate_serious_set = text[test_size:test_size + validate_size]
+train_serious_set = text[test_size + validate_size:]
 
 # get the TF IDF for all documents
 tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000,
@@ -45,8 +53,13 @@ from collections import defaultdict
 cluster_dict = defaultdict(list)
 
 for i in range(len(clusters)):
-    cluster_dict[clusters[i]].append(train_set[i])
+    cluster_dict[clusters[i]].append((
+        train_set[i],
+        train_serious_set[i]
+    ))
 
 
 for key in cluster_dict:
-    print(len(cluster_dict[key]))
+    print("Cluster {}".format(key))
+    print("Size:", len(cluster_dict[key]))
+    print("# serious:", sum([doc[1] == "Y" for doc in cluster_dict[key]]))
