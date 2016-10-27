@@ -19,8 +19,6 @@ for line in input:
     text.append(line[8])
     seriouses.append(line)
 
-text = text[:int(len(text)/6)]
-
 # Partition the data into the 3 sets
 test_size = int(len(text) * 0.1) # 10%
 validate_size = int(len(text) * 0.1) # 10%
@@ -90,6 +88,7 @@ for key in cluster_dict:
             avg_hist[var][doc[1][var]] += 1
     hists += [cluster_hist]
 
+distances = []
 for hist_i in range(len(hists)):
     hist = hists[hist_i]
     print("cluster", hist_i)
@@ -108,7 +107,28 @@ for hist_i in range(len(hists)):
         dists += [(math.sqrt(dist), headers[var])]
     for x in list(reversed(sorted(dists)))[:6]:
         print(x[1], x[0])
+    distances.append(dists)
 
+from matplotlib import pyplot as plt
+import numpy as np
+
+
+num = 0
+for dist in distances:
+    labels = tuple([t[1] for t in dist])
+    y_pos = np.arange(len(labels))
+    heights = [t[0] for t in dist]
+
+    plt.bar(y_pos, heights, align='center', alpha=0.5)
+    plt.xticks(y_pos, labels)
+    plt.ylabel('importance of columns in cluster')
+    plt.title('Difference from average')
+    locs, xticks = plt.xticks()
+    plt.setp(xticks, rotation=90, horizontalalignment='center')
+    #plt.show()
+    plt.savefig('cluster-weight-{}.png'.format(num))
+    num += 1
+    plt.clf()
 
 
 
