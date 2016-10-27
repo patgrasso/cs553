@@ -4,6 +4,7 @@
 
 import nltk
 import csv
+import math
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans, MiniBatchKMeans
 
@@ -17,6 +18,8 @@ seriouses = []
 for line in input:
     text.append(line[8])
     seriouses.append(line)
+
+text = text[:int(len(text)/6)]
 
 # Partition the data into the 3 sets
 test_size = int(len(text) * 0.1) # 10%
@@ -65,5 +68,47 @@ for key in cluster_dict:
     print("Cluster {}".format(key))
     print("Size:", len(cluster_dict[key]))
     print("# serious:", sum([doc[1][-1] == "Y" for doc in cluster_dict[key]]))
+
+
+# Average of each variable
+avg_hist = { header: {} for header in headers }
+
+print("Segment Profile:")
+
+hists = []
+avg_hist = [ {} for header in headers ]
+for key in cluster_dict:
+    # for each cluster
+    cluster_hist = [ {} for header in headers ]
+    for doc in cluster_dict[key]:
+        for var in range(len(headers)):
+            if doc[1][var] not in cluster_hist[var]:
+                cluster_hist[var][doc[1][var]] = 0
+            if doc[1][var] not in avg_hist[var]:
+                avg_hist[var][doc[1][var]] = 0
+            cluster_hist[var][doc[1][var]] += 1
+            avg_hist[var][doc[1][var]] += 1
+    hists += [cluster_hist]
+
+for hist_i in range(len(hists)):
+    hist = hists[hist_i]
+    print("cluster", hist_i)
+    dists = []
+    for var in range(len(hist)):
+        if headers[var] == "SYMPTOM_TEXT":
+            continue
+        #print(" ", headers[var])
+        dist = 0
+        for key in hist[var]:
+            pop_avg = avg_hist[var][key] * 1.0 / sum(avg_hist[var][k] for k in avg_hist[var])
+            cls_avg = hist[var][key] * 1.0 / sum(hist[var][k] for k in hist[var])
+            dist += (pop_avg - cls_avg)**2
+            #print("   ", key, ":", pop_avg - cls_avg)
+        dist /= 1.0 * len(hist[var])
+        dists += [(math.sqrt(dist), headers[var])]
+    for x in list(reversed(sorted(dists)))[:6]:
+        print(x[1], x[0])
+
+
 
 
