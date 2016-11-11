@@ -59,14 +59,14 @@ words = [word for doc in m for word in doc]
 histogram = nltk.FreqDist(words)
 
 
-common_words = sorted(histogram.items(), key=lambda x: x[1], reverse=True)[:30]
+common_words = sorted(histogram.items(), key=lambda x: x[1], reverse=True)[:400]
 def extractor(text):
     features = {}
     for word in common_words:
         if word[0] in text:
-            features['contains({})'.format(word)] = True
+            features[word[0]] = True
         else:
-            features['contains({})'.format(word)] = False
+            features[word[0]] = False
     return features
 
 featuresets = [(extractor(word), is_serious) for (word, is_serious) in tagged]
@@ -77,6 +77,8 @@ train_feature_set = featuresets[test_size + validate_size:]
 
 classifier = nltk.DecisionTreeClassifier.train(train_feature_set)
 accuracy = nltk.classify.accuracy(classifier, test_feature_set)
+
+print(classifier.classify(test_feature_set[0][0]))
 
 print("accuracy", accuracy)
 print(classifier.pseudocode(depth=4))
