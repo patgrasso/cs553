@@ -19,6 +19,8 @@ for line in input:
     text.append(line[8])
     seriouses.append(line)
 
+text = text[:int(len(text)/2)]
+
 # Partition the data into the 3 sets
 test_size = int(len(text) * 0.1) # 10%
 validate_size = int(len(text) * 0.1) # 10%
@@ -89,22 +91,52 @@ for key in cluster_dict:
     hists += [cluster_hist]
 
 distances = []
+# Data Structure : hists
+#
+# hists = [
+#     VAERS_ID ,  DIED , STATE , ...
+#     [ {}      ,  {}   , {}    , ... ]
+#     ...                 |
+#                         {NJ: 3, GA: 0, ...}
+# ]
+# each list in hists represents a cluster
+# each element in that list is a dictionary/histogram of the counts for each
+# value found in the column
+#   the keys are values found in that column
+#   the values are the count for that key
+#       e.g. STATE : { GA: 3 }
+#            = 3 people from this cluster were from
+
+# iterate over every cluster's histogram
 for hist_i in range(len(hists)):
     hist = hists[hist_i]
     print("cluster", hist_i)
+
+    # create a list that will contain the euclidean distances of each column
+    # from the average for that column. these will be used to determine which
+    # features are important for a given cluster
     dists = []
     for var in range(len(hist)):
+        # we don't really care about SYMPTOM_TEXT, because each is different
+        # and so there will rarely ever be a match
         if headers[var] == "SYMPTOM_TEXT":
             continue
-        #print(" ", headers[var])
+
         dist = 0
         for key in hist[var]:
+            # pop_avg is the population average for a value for a column
+            # e.g. pop_avg for "NJ" in STATE might be 0.12
             pop_avg = avg_hist[var][key] * 1.0 / sum(avg_hist[var][k] for k in avg_hist[var])
+            # cls_avg is the cluster average
+            # e.g. cls_avg for "NJ" in STATE might be 0.57
             cls_avg = hist[var][key] * 1.0 / sum(hist[var][k] for k in hist[var])
+            # take the squared distance between the averages
             dist += (pop_avg - cls_avg)**2
-            #print("   ", key, ":", pop_avg - cls_avg)
+        # normalize the distance by dividing by number of different values
         dist /= 1.0 * len(hist[var])
-        dists += [(math.sqrt(dist), headers[var])]
+        # add this importance factor, along with the header, into `dists`
+        dists += [(dist, headers[var])]
+
     for x in list(reversed(sorted(dists)))[:6]:
         print(x[1], x[0])
     distances.append(dists)
@@ -129,6 +161,13 @@ for dist in distances:
     plt.savefig('cluster-weight-{}.png'.format(num))
     num += 1
     plt.clf()
+
+
+sex = headers.index('SEX')
+print('average', avg_hist[sex])
+
+for hist in hists:
+    print(avg_hist[sex])
 
 
 
