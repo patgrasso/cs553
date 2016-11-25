@@ -70,12 +70,14 @@ for doc in all:
 
 # write it to a file
 print("TFIDF Table          : tfidf.csv");
-writer = csv.writer(open("./tfidf.csv", 'w'))
-writer.writerows([words] + spreadsheet)
+wds = [word if word != "," else "\",\"" for word in words]
+header = ','.join(["{:^18}".format(word) for word in wds])
+np.savetxt("tfidf.csv", np.array(spreadsheet), fmt="%16.16f",
+           delimiter=',', header=header, comments='')
 
 print("Term Frequency Table : tf.csv");
-writer = csv.writer(open("./tf.csv", 'w'))
-writer.writerows([words] + termfrequencies)
+np.savetxt("tf.csv", np.array(termfrequencies), fmt="%16.16f",
+           delimiter=',', header=header, comments='')
 
 # calculate similarities
 similarities = []
