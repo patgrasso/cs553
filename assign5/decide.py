@@ -2,7 +2,7 @@
 
 # Nicholas Antonov and Pat Grasso worked together on this assignment
 
-import nltk, csv, math, re, pandas
+import nltk, csv, math, re, pandas, scipy
 import numpy as np
 import warnings
 
@@ -47,48 +47,52 @@ test_samples = samples.drop(train_samples.index)#.sample(frac=0.05)
 print("Training on {} samples".format(train_samples.shape[0]))
 
 vectorizers = {
-    "tfidf": TfidfVectorizer(max_df=1, max_features=1000,
-                             min_df=1, stop_words='english',
+    "tfidf": TfidfVectorizer(max_df=0.99, max_features=1000,
+                             min_df=0.01, stop_words="english",
                              use_idf=True, ngram_range=(1,3)),
-    "count": CountVectorizer(stop_words="english", ngram_range=(1,3),
-                             max_features=1000),
-    "tficf": TficfVectorizer()
+    "count": CountVectorizer(max_df=0.99, max_features=1000,
+                             min_df=0.01, stop_words="english",
+                             ngram_range=(1,3)),
+    "tficf": TficfVectorizer(max_df=0.99, max_features=1000,
+                             min_df=0.01, stop_words="english",
+                             use_idf=True, ngram_range=(1,3))
 }
 
 
 # Pick vectorization method
-vectorizer = vectorizers["tficf"]
+vectorizer = vectorizers["tfidf"]
+
+print("Vectorizing with {}".format(vectorizer.__class__.__name__))
+
 word_matrix = vectorizer.fit_transform(
     train_samples["SYMPTOM_TEXT"],
-    train_samples["SERIOUS"]).toarray()
-test_matrix = vectorizer.transform(
-    test_samples["SYMPTOM_TEXT"],
-    test_samples["SERIOUS"]).toarray()
+    train_samples["SERIOUS"])
 
-exit()
+try:
+    test_matrix = vectorizer.transform(
+        test_samples["SYMPTOM_TEXT"],
+        test_samples["SERIOUS"])
+except:
+    test_matrix = vectorizer.transform(
+        test_samples["SYMPTOM_TEXT"])
 
+if isinstance(word_matrix, scipy.sparse.csr_matrix):
+    word_matrix = word_matrix.toarray()
+    test_matrix = test_matrix.toarray()
+
+
+print("Vectorization complete. Classifying...")
 
 # Set up decision tree
-decision_tree = DecisionTreeClassifier()
-clf = GridSearchCV(
-    decision_tree,
-    { "max_depth": [5, 6, 7],
-      "min_samples_leaf": [1, 4, 5, 6, 7] },
-    n_jobs = 8
-)
-
+clf = DecisionTreeClassifier(max_depth=5, min_samples_leaf=6)
 baseline = DummyClassifier(strategy="prior")
 
 clf.fit(word_matrix, train_samples["SERIOUS"])
 baseline.fit(word_matrix, train_samples["SERIOUS"])
 
-# Report top hyperparam configs
-report(clf.cv_results_)
-
 # Print tree
 #tree_to_code(clf.best_estimator_, vectorizer.get_feature_names())
-export_graphviz(clf.best_estimator_,
-                out_file = "tree.dot",
+export_graphviz(clf, out_file = "tree.dot",
                 feature_names = vectorizer.get_feature_names(),
                 class_names = ["N", "Y"],
                 filled = True,
@@ -97,7 +101,7 @@ export_graphviz(clf.best_estimator_,
 
 # Get feature importances
 feature_importances = sorted(zip(
-    clf.best_estimator_.feature_importances_,
+    clf.feature_importances_,
     vectorizer.get_feature_names()
 ), reverse=True)
 
