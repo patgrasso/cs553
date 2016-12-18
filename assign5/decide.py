@@ -80,7 +80,6 @@ if isinstance(word_matrix, scipy.sparse.csr_matrix):
     word_matrix = word_matrix.toarray()
     test_matrix = test_matrix.toarray()
 
-
 print("Vectorization complete. Classifying...")
 
 # Set up decision tree
