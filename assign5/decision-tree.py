@@ -20,6 +20,9 @@ from printtree import tree_to_code
 
 warnings.simplefilter("ignore", np.VisibleDeprecationWarning)
 
+NUM_TERMS_TO_PRINT = 15
+TRAIN_RATIO = 0.8
+
 def report(results, n_top=3):
     """
     Report the top n hyperparameter configurations for this set
@@ -59,8 +62,8 @@ samples = pandas.read_csv("serious.csv", encoding="latin1")
 samples = samples[samples["SYMPTOM_TEXT"].notnull()]
 
 # Partition the data into training/testing sets
-train_samples = samples.sample(frac=0.5)
-test_samples = samples.drop(train_samples.index)#.sample(frac=0.05)
+train_samples = samples.sample(frac=TRAIN_RATIO)
+test_samples = samples.drop(train_samples.index)
 #test_yes = test_samples[test_samples["SERIOUS"] == "Y"]
 #test_no = test_samples[test_samples["SERIOUS"] == "N"].sample(test_yes.shape[0])
 #test_samples = pandas.concat((test_no, test_yes))
@@ -143,23 +146,36 @@ feature_importances = sorted(zip(
 
 
 # Print the top N important features
-for importance, feature in feature_importances[:10]:
+print()
+print("Printing the top %d significant features" % NUM_TERMS_TO_PRINT)
+for importance, feature in feature_importances[:NUM_TERMS_TO_PRINT]:
     feature = (feature[:27] + "...") if len(feature) > 30 else feature
     print("{:30s}: {}".format(feature, importance))
 
 
 # Print classifier's accuracy on the test set
+clf_conf = confusion_matrix(
+    test_samples["SERIOUS"],
+    clf.predict(test_matrix))
+base_conf = confusion_matrix(
+    test_samples["SERIOUS"],
+    baseline.predict(test_matrix))
+
 print()
-print("score    :", clf.score(test_matrix, test_samples["SERIOUS"]))
-print("baseline :", baseline.score(test_matrix, test_samples["SERIOUS"]))
+print("tree accuracy  :", clf.score(test_matrix, test_samples["SERIOUS"]))
+print("tree recall    :", clf_conf[1,1] / (clf_conf[1,1] + clf_conf[1,0]))
+print("tree precision :", clf_conf[1,1] / (clf_conf[1,1] + clf_conf[0,1]))
+print("prior accuracy :", baseline.score(test_matrix, test_samples["SERIOUS"]))
+print("prior recall   :", base_conf[1,1] / (base_conf[1,1] + base_conf[1,0]))
+print("prior precision:", base_conf[1,1] / (base_conf[1,1] + base_conf[0,1]+1))
 print()
 print("~ confusion ~")
 print("reference:")
 print(np.array([["TN", "FP"], ["FN", "TP"]]))
 print()
 print("confusion [%s]:" % clf.__class__.__name__)
-print(confusion_matrix(test_samples["SERIOUS"], clf.predict(test_matrix)))
+print(clf_conf)
 print()
 print("confusion [%s]:" % baseline.__class__.__name__)
-print(confusion_matrix(test_samples["SERIOUS"], baseline.predict(test_matrix)))
+print(base_conf)
 

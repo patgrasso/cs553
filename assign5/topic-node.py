@@ -23,11 +23,11 @@ samples = pd.read_csv("serious.csv", encoding="latin1")
 samples = samples[samples["SYMPTOM_TEXT"].notnull()]
 
 NUM_TOPICS = 100
+TRAIN_RATIO = 0.8
 
 # Partition the data into training/testing sets
-train_samples = samples.sample(frac=0.5)
+train_samples = samples.sample(frac=TRAIN_RATIO)
 test_samples = samples.drop(train_samples.index)
-og_test_symptoms = test_samples["SYMPTOM_TEXT"].copy()
 
 print("Train : {} ({:.2%})".format(
     train_samples.shape[0],
@@ -100,24 +100,31 @@ test_y = test_samples["SERIOUS"].reset_index(drop=True)
 
 clf = RandomForestClassifier()
 
+print()
 print("Training a %s on the topic probability matrix" % clf.__class__.__name__)
 clf.fit(train_X, train_y)
 baseline = DummyClassifier(strategy="prior").fit(train_X, train_y)
 
 
 # Print classifier's accuracy on the test set
+clf_conf = confusion_matrix(test_y, clf.predict(test_X))
+base_conf = confusion_matrix(test_y, baseline.predict(test_X))
+
 print()
-print("score    :", clf.score(test_X, test_y))
-print("baseline :", baseline.score(test_X, test_y))
+print("topic accuracy :", clf.score(test_X, test_y))
+print("topic recall   :", clf_conf[1,1] / (clf_conf[1,1] + clf_conf[1,0]))
+print("topic precision:", clf_conf[1,1] / (clf_conf[1,1] + clf_conf[0,1]))
+print("prior accuracy :", baseline.score(test_X, test_y))
+print("prior recall   :", base_conf[1,1] / (base_conf[1,1] + base_conf[1,0]))
+print("prior precision:", base_conf[1,1] / (base_conf[1,1] + base_conf[0,1]+1))
 print()
 print("~ confusion ~")
 print("reference:")
 print(np.array([["TN", "FP"], ["FN", "TP"]]))
 print()
 print("confusion [%s]:" % clf.__class__.__name__)
-print(confusion_matrix(test_y, clf.predict(test_X)))
+print(clf_conf)
 print()
 print("confusion [%s]:" % baseline.__class__.__name__)
-print(confusion_matrix(test_y, baseline.predict(test_X)))
-
+print(base_conf)
 
