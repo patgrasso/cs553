@@ -81,7 +81,7 @@ model = gensim.models.lsimodel.LsiModel(
 topic_words = [(index, [w for w, _ in tups]) for index, tups in
                model.show_topics(num_topics = 300,
                                  formatted = 0,
-                                 num_words = 10)]
+                                 num_words = 5)]
 
 # Check out our dope topics
 print("Topics:")

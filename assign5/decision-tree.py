@@ -20,7 +20,7 @@ from printtree import tree_to_code
 
 warnings.simplefilter("ignore", np.VisibleDeprecationWarning)
 
-NUM_TERMS_TO_PRINT = 15
+NUM_TERMS_TO_PRINT = 10
 TRAIN_RATIO = 0.8
 
 def report(results, n_top=3):

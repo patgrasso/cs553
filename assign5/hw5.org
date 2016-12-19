@@ -1,175 +1,76 @@
 #+TITLE: Homework 5
 #+AUTHOR: Nicholas Antonov & Patrick Grasso
+#+LaTeX_HEADER: \usepackage[margin=1in]{geometry}
 
 * Decision Trees
 
-We tried two different methods of generating decision trees, the one using nltk gets a slightly higher accuracy. In both these versions we removed stop words and stemmed the other words, then split the text into two different sets; 50% training and 50% validation, to train our decision trees on. With sufficient tweaking and depths, they eventually got to a respectable accuracy, one that was better than just fitting the data with a yes or no response.
+Our baseline for deciding whether or not our results were acceptable originate
+from our first attempt at classifying with a decision tree, in which the
+resulting tree consisted of a single node (a stump) with the value "N". It
+occurred to us that you can achieve about *78% accuracy just by classifying
+every case as not serious*. This is known as the prior distribution, which
+we used to define a baseline for performance. Any classifier should do better
+than simply picking "N". (Note: recall and precision for this method are both
+0).
 
-Some patterns that arose were words like "hospital", "er", and "sample" were consistently in the tree throughout different iterations of the program.
+** Scikit's =DecisionTreeClassifier=
 
-** NLTK version
+We tried two different methods of generating decision trees. The first method
+utilizes Scikit's =DecisionTreeClassifier= and is trained on a tf-idf matrix
+(rows are the documents, columns are words selected by the vectorizer). Before
+vectorizing with tf-idf, stop words were removed and all words were stemmed so
+that similar words like =cats= and =cat= were considered the same.
 
-|             score | precision | recall |
-| 0.832909048831289 |     0.861 |  0.239 |
+With an 80/20 train/test split, this classifier achieved around 82-83% accuracy
+on average, which is only about 4% above the baseline. However, accuracy is not
+the most important or relevant metric in this scenario. *Precision*, or the
+number of true positives / (true positives + false positives), indicates how
+efficient our classifier is with respect to resources. A higher precision means
+that we are less likely to misclassify non-serious cases as serious. Another
+metric, *recall*, is the number of true positives / (true positives + false
+negatives). A higher recall means that we are less likely to miss a serious
+case and claim it to be non-serious. *Precision* is also the metric used for
+ROC charts.
 
-*** Output with tree pseudocode
+Scikit's =DecisionTreeClassifier= had an average recall of 0.256 and an average
+precision of 0.864. This means that Scikit's decision tree is more likely to
+miss serious cases, but it does not waste resources with non-serious cases.
 
-#+BEGIN_EXAMPLE
-python nltk-tree.py 
-Training on 8642 samples
-Vectorizing with CountVectorizer
-Vectorization complete. Classifying...
-if er == False: 
-  if emergency == False: 
-    if hospital == False: 
-      if seen == False: 
-        if hep == False: 
-          if seizure == False: 
-            if infection == False: 
-              if cellulitis == False: 
-                if visit == False: return 'N'
-                if visit == True: 
-                  if did == False: return 'Y'
-                  if did == True: return 'N'
-              if cellulitis == True: 
-                if reaction == False: 
-                  if contactable == False: return 'N'
-                  if contactable == True: return 'N'
-                if reaction == True: 
-                  if relevant medical == False: return 'N'
-                  if relevant medical == True: return 'Y'
-            if infection == True: 
-              if unknown == False: 
-                if history concomitant == False: 
-                  if patient received == False: return 'Y'
-                  if patient received == True: return 'N'
-                if history concomitant == True: return 'N'
-              if unknown == True: 
-                if normal == False: 
-                  if route administration reported == False: return 'N'
-                  if route administration reported == True: return 'Y'
-                if normal == True: return 'Y'
-          if seizure == True: 
-            if unspecified date == False: 
-              if male patient == False: 
-                if date outcome == False: 
-                  if diagnosed == False: return 'N'
-                  if diagnosed == True: return 'N'
-                if date outcome == True: return 'N'
-              if male patient == True: return 'N'
-            if unspecified date == True: return 'N'
-        if hep == True: 
-          if stored == False: 
-            if developed == False: 
-              if 20 == False: 
-                if said == False: 
-                  if allergy == False: return 'N'
-                  if allergy == True: return 'Y'
-                if said == True: return 'Y'
-              if 20 == True: return 'Y'
-            if developed == True: 
-              if throat == False: return 'Y'
-              if throat == True: return 'N'
-          if stored == True: 
-            if events == False: return 'Y'
-            if events == True: return 'N'
-      if seen == True: 
-        if initial == False: 
-          if states == False: 
-            if reporting == False: 
-              if 01 == False: 
-                if visit == False: 
-                  if infection == False: return 'Y'
-                  if infection == True: return 'Y'
-                if visit == True: return 'N'
-              if 01 == True: 
-                if dates == False: return 'N'
-                if dates == True: return 'Y'
-            if reporting == True: 
-              if office == False: return 'N'
-              if office == True: return 'Y'
-          if states == True: 
-            if left == False: return 'N'
-            if left == True: return 'Y'
-        if initial == True: 
-          if review == False: 
-            if resolved == False: return 'N'
-            if resolved == True: return 'Y'
-          if review == True: return 'Y'
-    if hospital == True: 
-      if stored == False: 
-        if respectively == False: 
-          if event reported == False: 
-            if exact == False: 
-              if pharmacist refers == False: 
-                if health professional == False: 
-                  if unknown reporter == False: return 'Y'
-                  if unknown reporter == True: return 'N'
-                if health professional == True: return 'N'
-              if pharmacist refers == True: return 'N'
-            if exact == True: return 'N'
-          if event reported == True: return 'N'
-        if respectively == True: return 'N'
-      if stored == True: return 'N'
-  if emergency == True: 
-    if reported adverse == False: 
-      if proquad == False: 
-        if flumist == False: 
-          if mmr == False: 
-            if feb 2017 == False: 
-              if nov 2014 == False: return 'Y'
-              if nov 2014 == True: return 'N'
-            if feb 2017 == True: return 'N'
-          if mmr == True: return 'N'
-        if flumist == True: return 'N'
-      if proquad == True: return 'N'
-    if reported adverse == True: return 'N'
-if er == True: 
-  if warmth == False: 
-    if initial spontaneous == False: 
-      if adult == False: 
-        if dosage == False: return 'Y'
-        if dosage == True: return 'N'
-      if adult == True: return 'N'
-    if initial spontaneous == True: return 'N'
-  if warmth == True: 
-    if administration == False: return 'N'
-    if administration == True: return 'Y'
+*** Output for the Scikit decision tree
 
-score: 0.832909048831289
-#+END_EXAMPLE
-
-** Scikit version
-|         score | precision | recall |
-| 0.82608192548 |     0.795 |  0.361 |
-
-*** Visual representation of tree
-
-[[./tree.png]]
-
-*** Output
+Below is the output of the Scikit decision tree classifier. The top 10 most
+significant terms are printed with their corresponding relevance. The words
+appear cut off because the stemming process truncated all words to their
+common root (adverse, adversity, adversely -> advers; advise, advisory ->
+advis).
 
 #+BEGIN_EXAMPLE
+$ python decision-tree.py
 
-python decision-tree.py
-Train : 8642 (50.00%)
-Test  : 8642 (50.00%)
+Train : 13827 (80.00%)
+Test  : 3457 (20.00%)
 Removing stop words/stemming
 Vectorizing with TfidfVectorizer
 Vectorization complete. Classifying...
-advers                        : 0.4311993467877191
-er                            : 0.16485453975969108
-hospit                        : 0.12815002718169066
-report                        : 0.09747767691990414
-emerg                         : 0.05758832814948475
-test                          : 0.040238799024191536
-visit                         : 0.013739181566336325
-red                           : 0.012506647351963378
-follow inform                 : 0.007722328894573468
-mother                        : 0.007646701964854062
 
-score    : 0.82608192548
-baseline : 0.7811849109
+Printing the top 10 significant features
+advers                        : 0.4445046663593824
+er                            : 0.1660336983992121
+hospit                        : 0.11770446059244367
+report                        : 0.0980937934053291
+emerg                         : 0.06459727209523931
+test                          : 0.030503082385091213
+went                          : 0.016911883657538047
+patient experienc             : 0.012283723770826732
+day                           : 0.00913341776104604
+mother                        : 0.007675118925593991
+
+tree accuracy  : 0.831935203934
+tree recall    : 0.25641025641
+tree precision : 0.863636363636
+prior accuracy : 0.785652299682
+prior recall   : 0.0
+prior precision: 0.0
 
 ~ confusion ~
 reference:
@@ -177,136 +78,254 @@ reference:
  ['FN' 'TP']]
 
 confusion [DecisionTreeClassifier]:
-[[6667   84]
- [1419  472]]
-
-confusion [DummyClassifier]:
-[[6751    0]
- [1891    0]]
+[[2686   30]
+ [ 551  190]]
 #+END_EXAMPLE
 
-* Text topics
+#+CAPTION: Graphical representation of the Scikit decision tree
+[[./tree.png]]
 
 
-|         score | precision | recall |
-| 0.81497338579 |     0.635 |  0.309 |
+** NLTK's =DecisionTreeClassifier=
 
-*** output with important features
+Second, we tried using NLTK's own =DecisionTreeClassifier=. This classifier took
+significantly longer to train, although it performed better. NLTK's decision
+tree achieved an accuracy of 0.847, a recall of 0.388, and a precision of 0.796.
+This means that the NLTK version of this classifier will catch more serious
+cases, but at the cost of misclassifying more non-serious cases (not as 
+resource efficient).
+
+*** Pseudocode and output for the NLTK decision tree
 
 #+BEGIN_EXAMPLE
+$ python nltk-tree.py
+
+Train : 13827 (80.00%)
+Test  : 3457 (20.00%)
+Vectorizing with CountVectorizer
+Vectorization complete. Classifying...
+if er == False: 
+  if emergency == False: 
+    if hospital == False: 
+      if seen == False: 
+        if testing == False: 
+          if prescribed == False: return 'Y'
+          if prescribed == True: return 'Y'
+        if testing == True: 
+          if years == False: return 'Y'
+          if years == True: return 'N'
+      if seen == True: 
+        if initial == False: 
+          if felt == False: return 'N'
+          if felt == True: return 'N'
+        if initial == True: 
+          if nausea == False: return 'N'
+          if nausea == True: return 'Y'
+    if hospital == True: 
+      if improperly == False: 
+        if date outcome == False: 
+          if condition medical == False: return 'Y'
+          if condition medical == True: return 'N'
+        if date outcome == True: 
+          if started == False: return 'N'
+          if started == True: return 'Y'
+      if improperly == True: return 'N'
+  if emergency == True: 
+    if redness swelling == False: 
+      if mom == False: 
+        if adverse effects == False: 
+          if mmr == False: return 'Y'
+          if mmr == True: return 'Y'
+        if adverse effects == True: return 'N'
+      if mom == True: 
+        if condition == False: return 'N'
+        if condition == True: return 'Y'
+    if redness swelling == True: 
+      if vaccinated == False: return 'N'
+      if vaccinated == True: return 'Y'
+if er == True: 
+  if initial spontaneous report == False: 
+    if administered dose == False: 
+      if date 08 == False: return 'Y'
+      if date 08 == True: return 'N'
+    if administered dose == True: return 'N'
+  if initial spontaneous report == True: return 'N'
 
 
-python topic-node.py 
-Train : 8642 (50.00%)
-Test  : 8642 (50.00%)
+tree accuracy  : 0.846977147816
+tree recall    : 0.387617765814
+tree precision : 0.795580110497
+prior accuracy : 0.785073763379
+prior recall   : 0.0
+prior precision: 0.0
+
+~ confusion ~
+reference:
+[['TN' 'FP']
+ ['FN' 'TP']]
+
+confusion [DecisionTreeClassifier]:
+[[2640   74]
+ [ 455  288]]
+
+confusion [DummyClassifier]:
+[[2714    0]
+ [ 743    0]]
+#+END_EXAMPLE
+
+
+* Text Topics
+
+Another way of classifying documents is by extracting relevant topics for each
+document and running a classifier on which topics correspond to certain classes.
+Two of the more common ways of extracting topics from text include Latent
+Dirichlet Allocation (LDA) and Latent Semantic Indexing (LSI). Both methods were
+used in order to extract topics from the VAERS dataset, but only one is reported
+here, as the other did not perform well. A Latent Semantic Indexing model was
+trained with the tf-idf vectorization of 80% of the symptom texts. The other
+20% were used to test the model.
+
+Then, each document was assigned a relevance score for each topic in the model,
+producing a matrix in which the rows represent documents and the columns topics.
+A random forest classifier with 10 weak learners and an unrestricted depth was
+then trained on this topic-relevance data set to classify symptom texts as
+serious (Y or N).
+
+** LDA topic extraction output
+
+A sample of words from each topic is printed to provide a general idea or sense
+of the topic. This method obtained an accuracy of 0.817, a recall of 0.339, and
+a precision of 0.615. This precision is relatively low compared to the other
+methods, meaning that it is not very resource-efficient. Its recall is between
+Scikit's decision tree and NLTK's decision tree, which is indicative of a high
+testing variance.
+
+Nevertheless, topic extraction appears to perform worse than decision trees for
+recall and precision. This may be due to the fact that the decision tree
+classifiers were trained with n-grams up to 3, identifying common phrases in
+various documents as opposed to individual words. Another factor that might
+potentially affect the outcome is the number of topics chosen and the classifier
+used for topic extraction beyond LDA (right now we're using a random forest,
+but other ensemble classification methods such as boosting can be used).
+
+#+BEGIN_EXAMPLE
+$ python topic-node.py
+
+Train : 13827 (80.00%)
+Test  : 3457 (20.00%)
 Removing stop words/stemming
 Creating tf-idf models
 Creating LSI model
 Topics:
-(0, ['report', 'dose', 'patient', 'medic', 'unknown', 'inform', 'date', 'temperatur', 'unspecifi', 'lot'])
-(1, ['red', 'pain', 'inject', 'site', 'arm', 'swell', 'left', 'day', 'rash', 'pt'])
-(2, ['2014.', 'number', 'fluvirin', 'batch', 'oct', 'case', 'initi', 'intramuscularli', 'menveo', 'red'])
-(3, ['excurs', 'temperatur', 'degre', 'hour', 'zostavax', 'minut', 'previou', 'event', 'f', 'physician'])
-(4, ['allergy/drug', 'red', 'pqc', 'excurs', 'complaint', 'recombivax', 'hb', 'swell', 'qualiti', 'product'])
-(5, ['inject', 'site', 'red', 'pain', 'swell', 'arm', 'shoulder', 'fever', 'hb', 'recombivax'])
-(6, ['zostavax', 'compon', 'menveo', 'pharmacist', 'fluvirin', 'unit', 'arm', 'conjug', 'pain', 'hb'])
-(7, ['none', 'state', 'pain', 'zostavax', 'fluvirin', 'sender', 'held', 'document', 'arm', 'data'])
-(8, ['none', '67', 'servic', 'person', 'syring', 'pain', 'use', 'rash', 'health', 'hep'])
-(9, ['rash', 'pain', 'syring', 'fever', '67', 'servic', 'person', 'arm', 'compon', 'use'])
-(10, ['rash', 'pain', 'oral', 'rotateq', 'none', 'arm', 'temperatur', 'fluvirin', 'm.a', 'allergy/drug'])
-(11, ['merck', 'proquad', 'gardasil', 'varivax', '9', 'rotateq', '08-jun-2015', 'k025766', 'oral', 'l030586'])
-(12, ['gardasil', '9', 'pt', 'inject', 'pain', 'site', 'rotateq', 'oral', 'swollen', 'touch'])
-(13, ['rash', 'arm', 'fever', 'zostavax', 'inject', 'site', 'headach', 'gardasil', 'left', 'pt'])
-(14, ['rash', 'flumist', 'pt', 'pain', 'gardasil', 'inject', 'touch', 'site', 'none', 'warm'])
-(15, ['zostavax', 'rash', 'pt', 'flumist', 'state', '2015.', 'gardasil', '2015', 'none', 'hb'])
-(16, ['hb', 'recombivax', 'qualiti', 'pqc', 'complaint', 'involv', 'product', 'expir', 'pharmacist', 'allergy/drug'])
-(17, ['flumist', 'unspecifi', 'rash', 'pt', 'intranas', 'quadrival', 'none', 'pain', '2015', '2015.'])
-(18, ['unspecifi', 'swollen', 'pt', 'touch', 'flumist', 'inject', 'red', 'fever', 'site', 'warm'])
-(19, ['pt', 'fever', 'pertin', 'inject', 'flumist', 'drug', 'touch', 'red', 'rotateq', 'ach'])
-(20, ['swell', 'varivax', 'swollen', 'pertin', 'provid', 'drug', 'exact', 'l024256', '20.3', 'fahrenheit'])
-(21, ['swell', 'flumist', 'expir', 'worker', 'healthcar', 'swollen', 'proquad', 'fever', 'inject', 'expiri'])
-(22, ['swell', 'flumist', 'swollen', 'inject', 'hive', 'jan', 'site', '2015', 'sore', 'nurs'])
-(23, ['pt', "''", 'assist', 'hive', 'rash', 'vaqta', 'area', 'locat', 'anatom', '``'])
-(24, ['pt', 'zostavax', 'expir', 'swell', 'day', 'worker', 'expiri', 'reaction', 'healthcar', 'public'])
-(25, ['hive', 'itch', 'zostavax', 'warm', 'rash', 'pneumovax', 'touch', 'swollen', '23', 'sore'])
-(26, ['pneumovax', 'zostavax', '23', 'cm', 'area', 'erythema', 'nurs', 'assist', 'swollen', 'itch'])
-(27, ['arm', 'pain', 'sore', "''", 'touch', 'vaqta', '``', 'pt', 'itch', 'upper'])
-(28, ['erythema', 'pain', 'vaqta', 'arm', 'expir', 'upper', 'cm', 'reaction', 'proquad', 'expiri'])
-(29, ["''", '``', 'assist', 'zostavax', 'pneumovax', 'healthcar', 'worker', 'state', 'degre', 'hive'])
-(30, ['hive', "''", 'touch', 'pain', 'warm', 'sore', '``', 'bexsero', 'swell', 'arm'])
-(31, ['pneumovax', 'hive', '23', 'seizur', 'swell', 'minut', 'area', 'erythema', 'bodi', "''"])
-(32, ['ii', 'm-m-r', 'itch', 'unspecifi', 'pneumovax', 'varivax', 'certifi', 'symptom', 'time', 'event'])
-(33, ['sore', 'varivax', 'ii', 'warm', 'itch', 'touch', 'm-m-r', 'rotateq', 'reaction', 'swollen'])
-(34, ['itch', 'area', 'touch', 'pneumovax', 'warm', '23', 'sore', 'hive', 'reaction', 'event'])
-(35, ['degre', 'bexsero', "''", '``', 'fever', 'fahrenheit', '23', 'day', 'expiri', 'headach'])
-(36, ['bexsero', 'unspecifi', 'expect', 'day', 'attent', 'sore', 'rang', 'sought', 'unknown', 'ach'])
-(37, ['sore', 'swollen', 'itch', 'warm', 'fever', 'left', 'day', 'shot', 'touch', 'seizur'])
-(38, ['itch', 'hive', "''", 'varivax', 'fever', 'event', 'ii', 'administ', 'm-m-r', '``'])
-(39, ['assist', 'nurs', 'bexsero', 'worker', 'regist', 'certifi', "''", 'sore', 'allergies/drug', 'healthcar'])
-(40, ['physician', 'pneumovax', '23', 'varivax', 'unspecifi', '08-jun-2015', 'l030586', 'k025766', 'multipl', 'state'])
-(41, ["''", 'minut', 'sourc', 'varivax', '``', 'therapi', 'follow-up', 'administ', 'year', 'healthcar'])
-(42, ['right', '2015.', 'left', 'oct', 'state', 'sore', 'day', 'pt', 'swollen', 'anaphylaxi'])
-(43, ['seizur', 'itch', 'febril', 'touch', 'itchi', 'vomit', 'given', 'swollen', 'warm', 'red'])
-(44, ['right', 'ii', 'm-m-r', 'shoulder', 'multipl', 'regard', 'seizur', 'dizzi', '2', 'area'])
-(45, ['right', 'sore', 'arm', 'shoulder', 'vomit', 'touch', 'area', 'administ', 'deltoid', 'seizur'])
-(46, ['left', 'right', 'sore', 'administ', "''", '``', 'day', 'celsiu', 'bexsero', 'seizur'])
-(47, ['right', 'itch', 'varivax', 'left', 'proquad', 'anaphylaxi', 'strength', 'vaqta', 'administ', 'day'])
-(48, ['given', 'bexsero', 'fever', 'right', 'ii', 'shoulder', 'vomit', 'm-m-r', 'dizzi', 'itchi'])
-(49, ['fever', 'f', 'degre', 'healthcar', 'health', 'celsiu', 'expos', 'public', 'worker', 'frame'])
-(50, ['given', 'right', 'left', 'seizur', 'bodi', 'itch', 'ach', 'vomit', 'pt', 'itchi'])
-(51, ['given', 'right', 'shoulder', 'day', 'state', 'shot', 'fever', 'erythema', 'left', 'bexsero'])
-(52, ['area', 'swollen', 'vomit', 'sore', 'erythema', 'bodi', 'ach', 'tender', 'cellul', 'inch'])
-(53, ['vomit', 'bodi', 'ach', 'seizur', 'given', 'diarrhea', 'sore', 'nausea', 'swollen', 'dizzi'])
-(54, ['vomit', 'shoulder', 'bexsero', 'pharmacist', 'hb', 'diarrhea', 'schedul', 'recombivax', 'pain', 'event'])
-(55, ['shoulder', 'given', 'unspecifi', 'area', 'erythema', 'reaction', 'local', 'shot', 'left', "''"])
-(56, ['shoulder', 'bexsero', 'pain', 'pregnanc', 'hot', 'sourc', 'left', 'expect', 'follow', 'l'])
-(57, ['left', 'multipl', 'vomit', 'anaphylaxi', 'event', 'oct', 'shot', 'arm', 'jan', 'fever'])
-(58, ['hot', 'shoulder', 'swollen', 'pain', 'right', 'l', 'administ', 'fever', 'pt', '2012'])
-(59, ['hot', 'shoulder', '2012', '2012.', 'pain', 'left', 'unspecifi', 'swollen', 'expect', 'elbow'])
-(60, ['2014.', 'minut', '2012', 'healthcar', 'worker', 'strength', 'ii', 'm.a', 'reaction', 'third'])
-(61, ['itchi', 'fever', 'seizur', 'strength', 'anaphylaxi', 'vomit', 'bexsero', 'state', 'left', 'hot'])
-(62, ['2015.', 'hot', 'compon', 'oct', 'men', 'reactions/allergi', 'licens', 'conjug', 'reaction', 'practic'])
-(63, ['cellul', 'hot', 'anaphylaxi', 'tender', 'antibiot', 'state', 'l', 'oct', 'develop', 'treat'])
-(64, ['l', 'red', 'vomit', 'swell', 'bodi', 'leg', 'fever', 'erythema', 'lump', 'swollen'])
-(65, ['headach', 'bodi', 'itchi', 'vomit', 'sore', 'cellul', 'hot', 'tender', 'minut', 'deltoid'])
-(66, ['shot', 'multipl', 'hot', 'leg', 'event', '2012', '2014.', 'certifi', 'state', '2012.'])
-(67, ['l', 'local', 'cellul', 'erythema', 'licens', 'given', 'cm', 'event', 'practic', 'thigh'])
-(68, ['hot', 'red', 'cellul', 'l', 'erythema', 'fever', 'swollen', '15', 'centigrad', 'practic'])
-(69, ['shot', 'thigh', 'local', 'flu', 'swollen', 'state', 'left', 'ii', 'pharmacist', 'regard'])
-(70, ['2012', 'shot', 'local', 'left', 'area', 'pregnanc', 'headach', '2012.', 'around', 'bodi'])
-(71, ['provid', 'hot', 'erythema', 'physician', 'event', 'hb', 'recombivax', 'headach', 'warm', 'anatom'])
-(72, ['itchi', 'l', 'erythema', 'headach', 'oct', 'multipl', 'anaphylaxi', 'pharmacist', '2014.', 'felt'])
-(73, ['headach', 'cellul', 'f', 'l', '2014.', 'weak', 'itchi', 'muscl', 'hot', 'ach'])
-(74, ['day', 'shot', 'expir', 'vaqta', 'state', 'l', 'cm', 'x', 'administr', 'expiri'])
-(75, ['day', 'cellul', 'week', 'hot', 'develop', 'l', 'provid', 'hand', 'muscl', 'deltoid'])
-(76, ['state', 'none', 'tender', 'cellul', 'leg', 'public', 'month', 'develop', 'expiri', 'hot'])
-(77, ['itchi', 'pregnanc', 'tender', 'mom', 'thigh', 'headach', 'child', 'month', 'hand', 'regist'])
-(78, ['tender', 'event', 'lump', 'state', 'month', 'pregnanc', 'anaphylaxi', 'thigh', 'minut', 'syncop'])
-(79, ['pregnanc', 'multipl', 'itchi', 'expir', 'regist', 'sourc', 'syncop', 'rang', 'cellul', 'muscl'])
-(80, ['local', 'upper', 'tingl', 'headach', 'numb', 'thigh', 'hand', 'hot', 'f', 'inadvert'])
-(81, ['event', 'minut', 'headach', 'expect', 'sourc', 'pharmacist', 'inch', 'l', 'hard', 'k023532'])
-(82, ['red', 'itchi', 'week', 'shot', 'call', 'vaqta', 'dizzi', 'administ', 'regist', 'expir'])
-(83, ['tender', 'multipl', 'cm', 'x', 'child', 'fever', 'itchi', 'shingl', 'anaphylaxi', 'around'])
-(84, ['thigh', 'rang', 'itchi', 'inch', 'anaphylaxi', '2', 'f', 'relev', 'pregnanc', 'dosag'])
-(85, ['l', 'muscl', 'leg', 'tender', 'administ', 'multipl', '4', 'anaphylaxi', 'frequenc', 'extrem'])
-(86, ['upper', '3', 'rang', 'thigh', 'around', 'symptom', 'physician', 'extrem', 'vaqta', 'cellul'])
-(87, ['f', 'deltoid', 'tender', '2', 'care', '2015', '2012', '2012.', 'back', 'itchi'])
-(88, ['headach', 'muscl', 'local', 'tender', 'syncop', 'event', '3', 'dizzi', 'bodi', 'lump'])
-(89, ['dizzi', 'week', 'fatigu', 'upper', '1', '3', 'extrem', 'tender', '2', 'chill'])
-(90, ['leg', 'administ', 'symptom', 'event', 'muscl', 'develop', 'dizzi', 'centigrad', 'chill', 'feel'])
-(91, ['leg', 'skin', 'client', 'inch', 'shot', 'tender', '9', 'syncop', 'cellul', 'shingl'])
-(92, ['lump', 'chest', 'state', 'leg', 'hard', 'upper', 'inch', 'itchi', 'regist', 'hot'])
-(93, ['upper', 'lump', 'cellul', 'around', 'schedul', 'symptom', 'hard', 'shingl', 'inappropri', 'syncop'])
-(94, ['lump', 'hard', 'muscl', 'skin', 'red', 'pregnanc', 'month', 'swollen', 'develop', 'upper'])
-(95, ['leg', 'deltoid', 'local', '1', 'skin', 'mg', 'muscl', 'expiri', 'expect', 'incorrect'])
-(96, ['erythema', 'tender', 'skin', 'thigh', 'itchi', 'rang', 'elbow', 'deltoid', 'motion', 'client'])
-(97, ['around', 'muscl', '3', 'develop', 'month', 'upper', 'could', 'inch', 'back', 'move'])
-(98, ['skin', 'around', 'dizzi', 'inch', '1', 'week', 'administr', 'lump', 'leg', 'extrem'])
-(99, ['local', 'face', 'back', 'rang', 'inch', 'tender', 'leg', 'pregnanc', 'diamet', 'chest'])
+(0, ['report', 'dose', 'patient', 'unknown', 'medic'])
+(1, ['red', 'pain', 'inject', 'arm', 'site'])
+(2, ['2014.', 'fluvirin', 'number', 'batch', 'oct'])
+(3, ['excurs', 'temperatur', 'degre', 'hour', 'minut'])
+(4, ['red', 'allergy/drug', 'pqc', 'swell', 'recombivax'])
+(5, ['site', 'inject', 'red', 'pain', 'swell'])
+(6, ['compon', 'menveo', 'zostavax', 'fluvirin', 'conjug'])
+(7, ['pain', 'rash', 'arm', 'temperatur', 'none'])
+(8, ['rash', 'none', 'pain', 'state', 'fever'])
+(9, ['none', 'flumist', 'rash', '67', 'servic'])
+(10, ['none', 'pain', 'rotateq', 'oral', 'zostavax'])
+(11, ['merck', 'flumist', 'proquad', 'gardasil', 'none'])
+(12, ['gardasil', 'flumist', '9', 'quadrival', 'intranas'])
+(13, ['gardasil', 'pt', 'flumist', 'rash', 'pain'])
+(14, ['fever', 'arm', 'rash', 'inject', 'merck'])
+(15, ['rash', 'pt', 'zostavax', 'gardasil', 'rotateq'])
+(16, ['hb', 'recombivax', 'fever', 'qualiti', 'complaint'])
+(17, ['none', 'state', '2015', 'unspecifi', 'pain'])
+(18, ['unspecifi', 'inject', 'fever', 'red', 'swollen'])
+(19, ['pt', 'swollen', 'flumist', 'red', 'fever'])
+(20, ['pt', 'pertin', 'drug', 'swell', 'rotateq'])
+(21, ['swell', 'swollen', 'zostavax', 'warm', 'itch'])
+(22, ['swell', 'inject', 'swollen', 'fever', 'zostavax'])
+(23, ['expir', 'worker', 'healthcar', 'expiri', 'public'])
+(24, ['pt', 'arm', 'area', 'sore', "''"])
+(25, ['pain', 'pt', 'hive', 'sore', 'itch'])
+(26, ['pneumovax', '23', 'zostavax', 'ii', 'hive'])
+(27, ['zostavax', 'assist', 'vaqta', 'expect', 'oral'])
+(28, ["''", '``', 'pain', 'proquad', 'arm'])
+(29, ['assist', 'certifi', 'expir', 'follow-up', 'pharmacist'])
+(30, ['pain', 'itch', 'arm', 'sore', 'touch'])
+(31, ['hive', 'pneumovax', 'itch', 'swell', '23'])
+(32, ["''", '``', 'ii', 'm-m-r', 'storag'])
+(33, ['hive', 'ii', 'varivax', 'vaqta', 'm-m-r'])
+(34, ['anaphylaxi', 'bexsero', 'itch', 'state', 'case'])
+(35, ['varivax', 'degre', "''", 'pneumovax', '``'])
+(36, ['itch', 'hive', 'anaphylaxi', 'touch', 'area'])
+(37, ['sore', 'warm', 'touch', 'hive', 'itch'])
+(38, ['sore', 'vaqta', 'seizur', 'fever', 'swollen'])
+(39, ['itch', 'hive', "''", '``', 'minut'])
+(40, ['sore', 'swollen', 'arm', 'fever', 'anaphylaxi'])
+(41, ['unspecifi', 'ii', 'bexsero', 'anaphylaxi', 'strength'])
+(42, ['seizur', 'fever', 'itch', 'swollen', 'dizzi'])
+(43, ["''", 'seizur', 'celsiu', 'varivax', '``'])
+(44, ['day', 'varivax', 'erythema', 'left', 'vaqta'])
+(45, ['area', 'multipl', 'itch', 'vomit', 'bexsero'])
+(46, ['right', 'regist', 'regard', 'anaphylaxi', 'ii'])
+(47, ['area', 'vaqta', 'ii', 'touch', 'm-m-r'])
+(48, ['administ', 'right', 'assist', 'inadvert', 'pharmacist'])
+(49, ['vomit', 'right', 'symptom', 'ach', 'nausea'])
+(50, ['left', 'unspecifi', 'vomit', 'right', 'area'])
+(51, ['seizur', 'day', 'sore', 'administ', 'provid'])
+(52, ['vomit', 'area', 'left', 'swollen', 'given'])
+(53, ['right', 'sore', '2012', 'men', 'area'])
+(54, ['given', 'bexsero', 'vomit', 'headach', 'ach'])
+(55, ['right', 'left', 'given', 'fever', 'shoulder'])
+(56, ['given', 'bexsero', 'varivax', 'left', 'expir'])
+(57, ['swollen', 'area', 'given', 'arm', 'shoulder'])
+(58, ['multipl', 'bexsero', 'area', 'sore', 'unspecifi'])
+(59, ['right', 'shingl', 'fever', 'thigh', 'seizur'])
+(60, ['fever', 'seizur', 'given', 'vomit', 'cellul'])
+(61, ['2014.', 'shingl', 'shoulder', '2014', 'vomit'])
+(62, ['headach', 'bodi', 'ach', 'vomit', 'shoulder'])
+(63, ['shoulder', 'pain', 'elbow', 'shingl', 'left'])
+(64, ['cellul', 'erythema', 'strength', 'healthcar', 'multipl'])
+(65, ['cellul', 'shot', 'bodi', 'headach', 'shingl'])
+(66, ['leg', 'anaphylaxi', 'headach', 'licens', 'pregnanc'])
+(67, ['f', 'leg', 'provid', 'profession', 'right'])
+(68, ['itchi', 'swollen', 'red', 'swell', 'cellul'])
+(69, ['cellul', 'local', 'given', 'physician', 'right'])
+(70, ['itchi', 'pharmacist', 'shot', 'thigh', 'flu'])
+(71, ['shingl', '2012', 'profession', 'care', 'health'])
+(72, ['shingl', 'itchi', 'child', 'l', 'headach'])
+(73, ['pregnanc', 'leg', 'month', '2012', 'state'])
+(74, ['l', 'hot', 'deltoid', 'itchi', 'erythema'])
+(75, ['physician', 'shot', 'symptom', 'multipl', 'cellul'])
+(76, ['cellul', 'pregnanc', 'month', 'l', 'shingl'])
+(77, ['day', 'multipl', 'pregnanc', 'shot', 'cellul'])
+(78, ['headach', 'upper', 'l', '2012', 'state'])
+(79, ['hot', 'around', 'lump', 'warm', 'hard'])
+(80, ['leg', 'shot', 'dizzi', 'data', 'logger'])
+(81, ['local', 'thigh', 'reaction', 'call', 'l'])
+(82, ['hot', 'local', 'lump', 'hard', 'warm'])
+(83, ['itchi', 'local', 'warmth', 'upper', 'leg'])
+(84, ['upper', 'administ', 'celsiu', 'state', 'fahrenheit'])
+(85, ['around', 'upper', 'develop', 'area', 'flu'])
+(86, ['upper', 'around', 'itchi', 'shot', 'cellul'])
+(87, ['warmth', 'physician', 'thigh', 'incorrect', 'deltoid'])
+(88, ['local', 'warmth', 'tender', 'week', 'erythema'])
+(89, ['cm', 'erythema', 'x', 'child', 'warmth'])
+(90, ['around', 'chest', 'upper', 'tender', 'lump'])
+(91, ['develop', 'warmth', 'tender', 'l', 'hot'])
+(92, ['3', 'cm', 'symptom', 'lump', 'flu'])
+(93, ['tender', 'fatigu', 'warmth', 'symptom', 'lump'])
+(94, ['tender', 'pregnanc', 'muscl', 'itchi', '9'])
+(95, ['around', 'inch', 'l', 'area', 'week'])
+(96, ['back', 'child', 'extrem', 'upper', 'warmth'])
+(97, ['lump', 'around', 'call', 'hard', 'hot'])
+(98, ['muscl', 'thigh', 'child', 'physician', 'leg'])
+(99, ['warmth', 'dizzi', 'symptom', '2016', 'around'])
+
 Training a RandomForestClassifier on the topic probability matrix
 
-score    : 0.81497338579
-baseline : 0.782226336496
+topic accuracy : 0.816893260052
+topic recall   : 0.339310344828
+topic precision: 0.615
+prior accuracy : 0.790280590107
+prior recall   : 0.0
+prior precision: 0.0
 
 ~ confusion ~
 reference:
@@ -314,16 +333,29 @@ reference:
  ['FN' 'TP']]
 
 confusion [RandomForestClassifier]:
-[[6464  296]
- [1303  579]]
-
-confusion [DummyClassifier]:
-[[6760    0]
- [1882    0]]
+[[2578  154]
+ [ 479  246]]
 #+END_EXAMPLE
-
 
 * Conclusion
 
-In general, the decision tree is better, but the text topic method would be what you would most likely use in a real world case, as it is better at catching more of the truly serious cases.
+Below is a summary of the performance metrics for each method.
+
++------------+-----------+-----------+--------+----------------------+
+| Scikit Decision Tree   | NLTK Decision Tree | LDA Topic Extraction |
++------------+-----------+-----------+--------+-----------+----------+
+| accuracy   | 0.832     | accuracy  | 0.847  | accuracy  | 0.817    |
+| recall     | 0.256     | recall    | 0.388  | recall    | 0.339    |
+| precision  | 0.864     | precision | 0.796  | precision | 0.615    |
++------------+-----------+-----------+--------+-----------+----------+
+
+It appears that using a decision tree with binary rules, such as NLTK does, is
+the optimal solution for this dataset. However, this does not take into account
+testing variance. Depending on the situation, it might be desirable to maximize
+either recall or precision. For instance, if the goal is to minimize the number
+of false positives in order to save resources, decision trees would be the clear
+choice due to their precision. However, if the goal is to identify as many
+serious cases as possible without regard to false positives, topic extraction is
+a suitable choice given its recall.
+
 

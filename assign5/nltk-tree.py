@@ -41,7 +41,12 @@ samples = samples[samples["SYMPTOM_TEXT"].notnull()]
 train_samples = samples.sample(frac=TRAIN_RATIO)
 test_samples = samples.drop(train_samples.index)
 
-print("Training on {} samples".format(train_samples.shape[0]))
+print("Train : {} ({:.2%})".format(
+    train_samples.shape[0],
+    train_samples.shape[0] / samples.shape[0]))
+print("Test  : {} ({:.2%})".format(
+    test_samples.shape[0],
+    test_samples.shape[0] / samples.shape[0]))
 
 vectorizers = {
     "tfidf": TfidfVectorizer(max_df=0.8, max_features=200000,
@@ -73,7 +78,7 @@ what_nltk_wants = to_feature_dict(
     test_matrix,
     vectorizer.get_feature_names())
 
-print(clf.pseudocode(depth=10))
+print(clf.pseudocode(depth=6))
 
 results = pandas.concat((
     pandas.Series(map(clf.classify, what_nltk_wants), name = "predict"),
