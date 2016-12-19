@@ -91,6 +91,7 @@ for key in cluster_dict:
     hists += [cluster_hist]
 
 distances = []
+
 # Data Structure : hists
 #
 # hists = [
