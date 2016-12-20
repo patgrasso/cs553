@@ -1,0 +1,12 @@
+first training set and its tokens:
+This spontaneous report as received from a medical assistant regarding a patient of unknown age and gender. Information on the concurrent condition, medical history and pertinent drug allergies of the patient were not reported. On 14-OCT-2015 the patient was vaccinated with improperly stored  RECOMBIVAX HB (lot # L004754, expiry date-10-NOV-2016)(dose #, route, dose units and anatomical location were not specified). Concomitant medication was not reported. No adverse events were reported. There were no Product Quality Complaint (PQC) involved. This is one of several reports received from the same reporter. Additional information has been requested.
+['This', 'spontaneous', 'report', 'as', 'received', 'from', 'a', 'medical', 'assistant', 'regarding', 'a', 'patient', 'of', 'unknown', 'age', 'and', 'gender', '.', 'Information', 'on', 'the', 'concurrent', 'condition', ',', 'medical', 'history', 'and', 'pertinent', 'drug', 'allergies', 'of', 'the', 'patient', 'were', 'not', 'reported', '.', 'On', '14-OCT-2015', 'the', 'patient', 'was', 'vaccinated', 'with', 'improperly', 'stored', 'RECOMBIVAX', 'HB', '(', 'lot', '#', 'L004754', ',', 'expiry', 'date-10-NOV-2016', ')', '(', 'dose', '#', ',', 'route', ',', 'dose', 'units', 'and', 'anatomical', 'location', 'were', 'not', 'specified', ')', '.', 'Concomitant', 'medication', 'was', 'not', 'reported', '.', 'No', 'adverse', 'events', 'were', 'reported', '.', 'There', 'were', 'no', 'Product', 'Quality', 'Complaint', '(', 'PQC', ')', 'involved', '.', 'This', 'is', 'one', 'of', 'several', 'reports', 'received', 'from', 'the', 'same', 'reporter', '.', 'Additional', 'information', 'has', 'been', 'requested', '.']
+
+sample of token tagging
+[('This', 'DT'), ('spontaneous', 'JJ'), ('report', 'NN'), ('as', 'IN'), ('received', 'VBN'), ('from', 'IN')]
+
+IDF of 'drug':  1.873466733102829
+TF_IDF for first document:  0.0028558944102177273
+
+<FreqDist with 27203 samples and 1361091 outcomes>
+[('hyper-sensitivity', 1), ('telling', 3), ('05-OCT-2018', 4), ('Sinus', 1), ('X12004', 1), ('DosePak', 1), ('himself/herself', 2), ('PHEH2015US003136', 1), ('tendinitis', 3), ('intern', 5)]
