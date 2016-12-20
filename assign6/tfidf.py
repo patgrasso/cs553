@@ -8,6 +8,7 @@ from nltk.corpus import stopwords
 import csv
 import math
 import numpy as np
+import pandas as pd
 
 stops = stopwords.words('english')
 
@@ -17,6 +18,10 @@ N_SAMPLES = 3
 news = brown.sents(categories=['news'])[:N_SAMPLES]
 mystery = brown.sents(categories=['mystery'])[:N_SAMPLES]
 scifi = brown.sents(categories=['science_fiction'])[:N_SAMPLES]
+doc_labels = ["news1"   , "news2"   , "news3",
+              "mystery1", "mystery2", "mystery3",
+              "scifi1"  , "scifi2"  , "scifi3"]
+topic_labels = ["news", "mystery", "scifi"]
 
 def lowerify(collection):
     return [[word.lower() for word in sent] for sent in collection]
@@ -119,12 +124,16 @@ for i in range(0, 3*N_SAMPLES, N_SAMPLES):
 
 # We can see from printing all the similarities that documents from the same
 # category are closer
-np.set_printoptions(linewidth=float('inf'))
-np.savetxt("doc_similarity.csv", similarities, fmt="%10.8f", delimiter=',')
-
 print()
 print("Document similarities: doc_similarity.csv")
-print(np.array(similarities))
+#np.set_printoptions(linewidth=float('inf'))
+#np.savetxt("doc_similarity.csv", similarities, fmt="%10.8f", delimiter=',')
+pretty_table = pd.DataFrame(similarities, index=doc_labels, columns=doc_labels)
+pretty_table.to_csv("doc_similarity.csv")
+f = open("doc_similarity.txt", "w")
+f.write(pretty_table.to_string())
+f.close()
+print(pretty_table)
 
 # This prints the normalized average of the similarities for each topic
 # The diagonal indicates how closely related documents of the same topic are
@@ -132,7 +141,12 @@ print(np.array(similarities))
 # those of another
 print()
 print("Topic similarities   : topic_similarity.csv")
-np.savetxt("topic_similarity.csv", topics, fmt="%10.8f", delimiter=',')
-print(np.array(topics))
+#np.savetxt("topic_similarity.csv", topics, fmt="%10.8f", delimiter=',')
+pretty_table = pd.DataFrame(topics, index=topic_labels, columns=topic_labels)
+pretty_table.to_csv("topic_similarity.csv")
+f = open("topic_similarity.txt", "w")
+f.write(pretty_table.to_string())
+f.close()
+print(pretty_table)
 
 
